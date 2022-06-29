@@ -1,6 +1,16 @@
 version: 2.1
 
-#commands:
+Orbs:
+    slack: circleci/slack@4.9.3
+
+commands:
+    notify_on_failure:
+        steps:
+           - slack/notify:
+                 event: fail
+                 channel: udacity
+                 template: basic_fail_1
+
 #  destroy-environment:
 #    description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
 #    parameters:
@@ -50,7 +60,7 @@ jobs:
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build
-
+      - notify_on_failure
   build-backend:
     docker:
       - image: cimg/node:13.8.0
@@ -68,7 +78,7 @@ jobs:
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
-
+      - notify_on_failure
   test-frontend:
     docker:
       - image: cimg/node:13.8.0
@@ -83,7 +93,7 @@ jobs:
                      cd frontend
                      npm install
                      npm test
-
+      - notify_on_failure
   test-backend:
     docker:
       - image: cimg/node:13.8.0
@@ -98,7 +108,7 @@ jobs:
                      cd backend
                      npm install
                      npm test
-
+        - notify_on_failure
 
   scan-frontend:
     docker:
@@ -115,7 +125,7 @@ jobs:
                      npm install
                      npm audit fix --force --audit-level=critical
                      npm audit --audit-level=critical
-
+        - notify_on_failure
   scan-backend:
     docker:
       - image: cimg/node:13.8.0
@@ -132,7 +142,7 @@ jobs:
                      npm audit fix --force --audit-level=critical
                      npm audit fix --force --audit-level=critical
                      npm audit --audit-level=critical
-
+        - notify_on_failure
 #  deploy-infrastructure:
 #    docker:
 #      # Docker image here that supports AWS CLI
@@ -298,6 +308,14 @@ jobs:
 #              # your code here
 #            fi
 
+notify_on_success:
+    docker:
+        image: cimg/base:default
+    steps:
+        - slack/notify:
+              event: pass
+              channel: udacity
+              template: success_tagged_deployment
 
 workflows:
   default:
@@ -331,3 +349,9 @@ workflows:
 #          requires: [smoke-test]
 #      - cleanup:
 #          requires: [cloudfront-update]
+       - notify_on_success:
+           requires:
+               - test-frontend
+               - test-backend
+               - scan-frontend
+               - scan-backend
