@@ -310,7 +310,7 @@ jobs:
 
   notify_on_success:
     docker:
-        image: cimg/base:default
+        image: cimg/base:stable
     steps:
         - slack/notify:
               event: pass
