@@ -1,6 +1,6 @@
 version: 2.1
 
-Orbs:
+orbs:
     slack: circleci/slack@4.9.3
 
 commands:
