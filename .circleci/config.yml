@@ -315,7 +315,7 @@ jobs:
         - slack/notify:
               event: pass
               channel: udacity
-              template: success_tagged_deployment_1
+              template: success_tagged_deploy_1
 
 workflows:
   default:
