@@ -8,7 +8,7 @@ commands:
         steps:
            - slack/notify:
                  event: fail
-                 channel: udacity
+                 channel: test
                  template: basic_fail_1
 
 #  destroy-environment:
@@ -314,7 +314,7 @@ jobs:
     steps:
         - slack/notify:
               event: pass
-              channel: udacity
+              channel: test
               template: success_tagged_deploy_1
 
 workflows:
@@ -355,4 +355,5 @@ workflows:
 #          requires: [smoke-test]
 #      - cleanup:
 #          requires: [cloudfront-update]
+
 
