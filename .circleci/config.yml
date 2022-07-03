@@ -39,8 +39,10 @@ commands:
           - run:
               name: Destroy environments
               when: on_fail
-              - install_awscli
               command: |
+                curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+                unzip awscliv2.zip
+                sudo ./aws/install
                 aws cloudformation delete-stack --stack-name udapeople-back-end-<< parameters.Workflow_ID >>
                 aws s3 rm s3://udapeople-<< parameters.Workflow_ID >> --recursive
                 aws cloudformation delete-stack --stack-name udapeople-front-end-<< parameters.Workflow_ID >>
