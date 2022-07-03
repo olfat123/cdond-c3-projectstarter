@@ -11,8 +11,9 @@
     shell: n 13.8.0
 
 -   name: "Install PM2"
-        npm:
-            name: pm2
-            global: yes
-            production: yes
-            state: present
+    become: true
+    npm:
+        name: pm2
+        global: yes
+        production: yes
+        state: present
