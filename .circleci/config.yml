@@ -231,7 +231,7 @@ jobs:
           command: |
             cd .circleci/ansible
             cat inventory.txt
-            ansible playbook i inventory.txt configure-server.yml
+            ansible-playbook i inventory.txt configure-server.yml
       - destroy-environment
 #
 #  run-migrations:
@@ -368,6 +368,7 @@ workflows:
                   - scan-frontend
                   - scan-backend
                   - deploy-infrastructure
+                  - configure-infrastructure
       - deploy-infrastructure:
           requires: [test-frontend, test-backend, scan-frontend, scan-backend]
           filters:
