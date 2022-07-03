@@ -1,4 +1,21 @@
 ---
+-   name: "update apt"
+    become: yes
+    apt:
+        update_cache: yes
+
+-   name: "upgrade apt packages"
+    become: true
+    apt:
+        upgrade: "yes"
+
+-   name: "install dependencies."
+    become: true
+    apt:
+        name: ["nodejs", "npm"]
+        state: latest
+        update_cache: yes
+
 -   name: "install n"
     become: yes
     npm:
