@@ -139,7 +139,7 @@ jobs:
     docker:
       - image: cimg/node:13.8.0
     steps:
-        - checkout
+        -   checkout
         -   restore_cache:
                 keys: [ front-build ]
         -   run:
@@ -151,7 +151,7 @@ jobs:
                      npm audit fix --force --audit-level=critical
                      npm audit fix --force --audit-level=critical
                      npm audit --audit-level=critical
-        - notify_on_failure
+        -   notify_on_failure
   scan-backend:
     docker:
       - image: cimg/node:13.8.0
