@@ -19,6 +19,16 @@ commands:
                     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
                     unzip awscliv2.zip
                     sudo ./aws/install
+
+    install_nodejs:
+        description: Install Node Js
+        steps:
+            - run:
+                name: Install Node Js
+                command: |
+                    curl -fsSL https://deb.nodesource.com/setup_13.x | sudo -E bash
+                    sudo apt-get install -y nodejs
+
     install_ansible:
         description: Install Ansible V2
         steps:
@@ -239,6 +249,7 @@ jobs:
     steps:
       - checkout
       - install_awscli
+      - install_nodejs
       - run:
           name: Run migrations
           command: |
