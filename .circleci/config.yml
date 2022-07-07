@@ -275,7 +275,7 @@ jobs:
       - install_awscli
       - install_nodejs
       - restore_cache:
-              keys: [frontend-build]
+          keys: [frontend-build]
       - run:
           name: Install dependencies
           command: |
@@ -285,11 +285,11 @@ jobs:
           name: Get backend url
           command: |
               BACKEND_IP=$(aws ec2 describe-instances \
-                filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+               --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
                --query "Reservations[*].Instances[*].PublicIpAddress" \
                --output text)
 
-              echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
+              echo "API_URL=http://${BACKEND_IP}:3030" >> frontend/.env
               cat frontend/.env
       - run:
           name: Deploy frontend objects
@@ -297,6 +297,7 @@ jobs:
             cd frontend
             npm run build
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+
       - destroy-environment
       - revert-migrations
 
@@ -310,6 +311,10 @@ jobs:
       - install_nodejs
       - add_ssh_keys:
             fingerprints: ["55:f9:f8:30:e3:18:c0:eb:d4:a9:e2:be:92:e0:0e:09"]
+      - attach_workspace:
+            at: ~/
+      -   restore_cache:
+            keys: [backend-build]
       - run:
           name: Install dependencies
           command: |
@@ -321,20 +326,21 @@ jobs:
           command: |
              cd backend
              npm run build
-             tar -czvf artifact.tar.gz dist/* package*
+             tar -czf artifact.tar.gz dist/* package*
 
              cd ..
              cp backend/artifact.tar.gz .circleci/ansible/roles/deploy/files
       - run:
           name: Deploy backend
           command: |
-              export TYPEORM_MIGRATIONS_DIR_./src/migrations
-              export TYPEORM_ENTITIES_./src/modules/domains/**/*.entity{.ts,.js}
-              export TYPEORM_MIGRATIONS-./src/migrations/*.ts
+              export TYPEORM_MIGRATIONS_DIR=./migrations
+              export TYPEORM_ENTITIES=./modules/domains/**/*.entity{.ts,.js}
+              export TYPEORM_MIGRATIONS=./migrations/*.ts
 
               cd .circleci/ansible
               cat inventory.txt
               ansible-playbook -i inventory.txt deploy-backend.yml
+
       - destroy-environment
       - revert-migrations
 #
