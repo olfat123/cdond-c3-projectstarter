@@ -431,7 +431,7 @@ workflows:
       - scan-frontend:
           requires: [build-frontend]
       -  notify_on_success:
-          requires: [deploy-backend, deploy-backend]
+          requires: [smoke-test]
       - deploy-infrastructure:
           requires: [test-frontend, test-backend, scan-frontend, scan-backend]
           filters:
@@ -447,6 +447,8 @@ workflows:
           requires: [run-migrations]
       - smoke-test:
           requires: [deploy-backend, deploy-frontend]
+      -  notify_on_success:
+          requires: [ smoke-test ]
 #      - cloudfront-update:
 #          requires: [smoke-test]
 #      - cleanup:
