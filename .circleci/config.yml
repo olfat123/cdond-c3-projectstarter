@@ -313,26 +313,24 @@ jobs:
             fingerprints: ["55:f9:f8:30:e3:18:c0:eb:d4:a9:e2:be:92:e0:0e:09"]
       - attach_workspace:
             at: ~/
-      -   restore_cache:
+      - restore_cache:
             keys: [backend-build]
       - run:
           name: Install dependencies
           command: |
-            cd backend
-            npm install
+              sudo apt -y install tar gzip curl
 
-      - run:
-          name: Package backend
-          command: |
-             cd backend
-             npm run build
-             tar -czvf artifact.tar.gz dist/* package*
-
-             cd ..
-             cp backend/artifact.tar.gz .circleci/ansible/roles/deploy/files
       - run:
           name: Deploy backend
           command: |
+              cd backend
+              npm install
+              npm run build
+
+              cd ..
+              tar -C backend -czvf artifact.tar.gz .
+              cp artifact.tar.gz .circleci/ansible/roles/deploy/files
+
               export TYPEORM_MIGRATIONS_DIR=./migrations
               export TYPEORM_ENTITIES=./modules/domains/**/*.entity{.ts,.js}
               export TYPEORM_MIGRATIONS=./migrations/*.ts
@@ -381,39 +379,58 @@ jobs:
       - destroy-environment
       - revert-migrations
 
-#  cloudfront-update:
-#    docker:
-#      # Docker image here that supports AWS CLI
-#    steps:
-#      # Checkout code from git
-#      - run:
-#          name: Install dependencies
-#          command: |
-#            # your code here
-#      - run:
-#          name: Update cloudfront distribution
-#          command: |
-#            # your code here
-#      # Here's where you will add some code to rollback on failure
-#
-#cleanup:
-#    docker:
-#      # Docker image here
-#    steps:
-#      # Checkout code from git
-#      - run:
-#          name: Get old stack workflow id
-#          command: |
-#            # your code here
-#            export OldWorkflowID="the id here"
-#            export STACKS=[] #put the list of stacks here
-#      - run:
-#          name: Remove old stacks and files
-#          command: |
-#            if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
-#            then
-#              # your code here
-#            fi
+  cloudfront-update:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - install_awscli
+      - install_nodejs
+      - run:
+          name: Save Old Workflow ID to kvdb.io
+          command: |
+              export OldWorkflowID=$(aws cloudformation \
+                      list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+                      --no-paginate --output text)
+              echo OldWorkflowID: "${OldWorkflowID}"
+              echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
+              curl https://kvdb.io/${KVDB_BUCKET}/old_workflow_id -d "${OLD_WORKFLOW_ID}"
+      - run:
+          name: Update cloudfront distribution
+          command: |
+              aws cloudformation deploy \
+                      --template-file .circleci/files/cloudfront.yml \
+                      --stack-name createCDN \
+                      --parameter-overrides WorkflowID="udapeople-${CIRCLE_WORKFLOW_ID:0:7}" \
+                      --tags project=udapeople
+      - destroy-environment
+      - revert-migrations
+  cleanup:
+      docker:
+          -  image: cimg/base:stable
+      steps:
+          - checkout
+          - install_awscli
+          - install_nodejs
+      - run:
+          name: Get old stack workflow id
+          command: |
+              # Fetch the stack names
+              export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
+                      --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
+              echo Stack names: "${STACKS[@]}"
+              export OldWorkflowID=$(curl --insecure https://kvdb.io/${KVDB_BUCKET}/old_workflow_id
+              echo OldWorkflowID: "${OldWorkflowID}"
+
+      - run:
+          name: Remove old stacks and files
+          command: |
+            if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
+            then
+              aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
+              aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
+              aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
+            fi
 
 
 
@@ -430,8 +447,6 @@ workflows:
           requires: [build-backend]
       - scan-frontend:
           requires: [build-frontend]
-      -  notify_on_success:
-          requires: [smoke-test]
       - deploy-infrastructure:
           requires: [test-frontend, test-backend, scan-frontend, scan-backend]
           filters:
@@ -447,11 +462,10 @@ workflows:
           requires: [run-migrations]
       - smoke-test:
           requires: [deploy-backend, deploy-frontend]
-      -  notify_on_success:
-          requires: [ smoke-test ]
-#      - cloudfront-update:
-#          requires: [smoke-test]
-#      - cleanup:
-#          requires: [cloudfront-update]
-
+      - cloudfront-update:
+          requires: [smoke-test]
+      - cleanup:
+          requires: [cloudfront-update]
+      - notify_on_success:
+          requires: [ cleanup ]
 
