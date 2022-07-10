@@ -20,7 +20,7 @@
     npm:
         name: npm
         global: yes
-        state: latest
+        production: yes
 
 -   name: "Install PM2"
     become: true
