@@ -1,6 +1,6 @@
 ---
 -   name: "update apt"
-    become: yes
+    become: true
     apt:
         update_cache: yes
 
@@ -11,21 +11,16 @@
 
 -   name: "install dependencies."
     become: true
-    apt:
-        name: ["nodejs", "npm"]
-        state: latest
-        update_cache: yes
+    shell: |
+        curl -fsSL https://deb.nodesource.com/setup_13.x | sudo -E bash -
+        sudo apt -y install nodejs
 
--   name: "install n"
-    become: yes
+-   name: "install npm"
+    become: true
     npm:
-        name: n
+        name: npm
         global: yes
-        production: yes
-
--   name: "install nodejs 13.8.0"
-    become: yes
-    shell: n 13.8.0
+        state: latest
 
 -   name: "Install PM2"
     become: true
