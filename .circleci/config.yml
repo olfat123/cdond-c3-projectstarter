@@ -331,9 +331,9 @@ jobs:
               tar -C backend -czvf artifact.tar.gz .
               cp artifact.tar.gz .circleci/ansible/roles/deploy/files
 
-              export TYPEORM_MIGRATIONS_DIR=./migrations
-              export TYPEORM_ENTITIES=./modules/domains/**/*.entity{.ts,.js}
-              export TYPEORM_MIGRATIONS=./migrations/*.ts
+              export TYPEORM_MIGRATIONS_DIR=./src/migrations
+              export TYPEORM_ENTITIES=./src/modules/domains/**/*.entity{.ts,.js}
+              export TYPEORM_MIGRATIONS=./src/migrations/*.ts
 
               cd .circleci/ansible
               cat inventory.txt

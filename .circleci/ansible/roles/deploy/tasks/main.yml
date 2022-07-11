@@ -15,6 +15,10 @@
       name: npm
       state: latest
       update_cache: true
+ - name: "Create .env"
+   become: true
+   shell: |
+       cp .env.prod .env
 
  - name: "Execute Node app with pm2"
    become: true
