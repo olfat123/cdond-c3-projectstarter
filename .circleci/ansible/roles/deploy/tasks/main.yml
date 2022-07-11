@@ -22,7 +22,7 @@
    become_method: sudo
    become_user: root
    shell: |
-       cd /home/ubuntu/backend-app/dist
+       cd /home/ubuntu/backend-app
        sudo mv .env.prod .env
        sudo npm install --force
        sudo npm run build
