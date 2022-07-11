@@ -18,6 +18,7 @@
  - name: "Create .env"
    become: true
    shell: |
+       cd  /home/ubuntu/backend-app
        cp .env.prod .env
 
  - name: "Execute Node app with pm2"
