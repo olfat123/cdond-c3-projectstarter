@@ -15,11 +15,13 @@
       name: npm
       state: latest
       update_cache: true
+
  - name: "Create .env"
    become: true
    shell: |
        cd  /home/ubuntu/backend-app
        cp .env.prod .env
+       npm start
 
  - name: "Execute Node app with pm2"
    become: true
