@@ -415,12 +415,6 @@ jobs:
           - install_awscli
           - install_nodejs
           - run:
-              name: Get old stack workflow id
-              command: |
-                  # Fetch the stack names
-
-
-          - run:
               name: Remove old stacks and files
               command: |
                 export STACKS=($(aws cloudformation list-stacks \
@@ -431,7 +425,8 @@ jobs:
                 export OldWorkflowID=$(curl --insecure https://kvdb.io/${KVDB_BUCKET}/old_workflow_id)
                 echo Old Workflow ID: $OldWorkflowID
                 lastSeven=${OldWorkflowID: -7}
-                if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
+                echo $lastSeven
+                if [[ "${STACKS[@]}" =~ "${lastSeven}" ]]
                 then
                   aws s3 rm "s3://udapeople-${lastSeven}" --recursive
                   aws cloudformation delete-stack --stack-name "udapeople-backend-${lastSeven}"
